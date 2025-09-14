@@ -1,0 +1,3 @@
+# Cloudflare Pages redirects for SPA applications
+# 所有路径都重定向到index.html，保持URL不变
+/* /index.html 200

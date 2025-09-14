@@ -36,7 +36,9 @@
                 "glob": "glpk.all.wasm",
                 "input": "node_modules/glpk-wasm/dist/",
                 "output": "/assets/glpk-wasm/"
-              }
+              },
+              "src/_redirects",
+              "src/_headers"
             ],
             "styles": [
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
