@@ -48,3 +48,9 @@ jobs:
         run: |
           BRANCH=${{ github.event.inputs.branch || 'main' }}
           git push origin $BRANCH
+
+      # 注意：在GitHub Actions环境中无法直接访问本地的factoriolab-File仓库
+      # 如需自动同步配置文件，请在本地环境中使用以下方案：
+      # 1. 手动运行factoriolab-File仓库中的sync-configs.bat/sync-configs.sh脚本
+      # 2. 或设置本地定时任务，在同步完成后自动运行脚本
+      # 3. 或修改此工作流，使其克隆factoriolab-File仓库（如果已发布到GitHub）
