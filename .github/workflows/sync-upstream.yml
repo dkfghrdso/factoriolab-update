@@ -1,0 +1,50 @@
+name: Sync with upstream repository
+
+# 触发条件：定期运行和手动触发
+on:
+  schedule:
+    # 每天凌晨2点运行（UTC时间）
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    # 允许手动触发工作流
+    inputs:
+      branch:
+        description: 'Branch to sync (default: main)'
+        required: false
+        default: 'main'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      # 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取所有历史记录
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 配置Git用户信息
+      - name: Configure Git user
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      # 添加上游仓库
+      - name: Add upstream repository
+        run: |
+          git remote add upstream https://github.com/factoriolab/factoriolab.git
+          git fetch upstream
+
+      # 合并上游更新
+      - name: Merge upstream changes
+        run: |
+          BRANCH=${{ github.event.inputs.branch || 'main' }}
+          git checkout $BRANCH
+          git merge --no-edit upstream/$BRANCH
+
+      # 推送更新到用户的fork仓库
+      - name: Push changes to fork
+        run: |
+          BRANCH=${{ github.event.inputs.branch || 'main' }}
+          git push origin $BRANCH
