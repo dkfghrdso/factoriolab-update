@@ -49,8 +49,54 @@ jobs:
           BRANCH=${{ github.event.inputs.branch || 'main' }}
           git push origin $BRANCH
 
-      # 注意：在GitHub Actions环境中无法直接访问本地的factoriolab-File仓库
-      # 如需自动同步配置文件，请在本地环境中使用以下方案：
-      # 1. 手动运行factoriolab-File仓库中的sync-configs.bat/sync-configs.sh脚本
-      # 2. 或设置本地定时任务，在同步完成后自动运行脚本
-      # 3. 或修改此工作流，使其克隆factoriolab-File仓库（如果已发布到GitHub）
+      # 克隆factoriolab-File仓库以获取配置文件
+      - name: Clone factoriolab-File repository
+        run: |
+          # 使用GitHub Token克隆factoriolab-File仓库（确保该仓库已公开或可通过GITHUB_TOKEN访问）
+          git clone https://github.com:dkfghrdso/factoriolab-File.git temp-file-repo
+          cd temp-file-repo
+          ls -la
+
+      # 复制配置文件到正确位置
+      - name: Copy configuration files
+        run: |
+          # 复制src目录下的配置文件
+          cp -f temp-file-repo/_redirects src/_redirects
+          cp -f temp-file-repo/_headers src/_headers
+          
+          # 复制根目录下的配置文件
+          cp -f temp-file-repo/cloudflare.config.js ./cloudflare.config.js
+          
+          # 检查配置文件是否成功复制
+          ls -la src/_redirects src/_headers cloudflare.config.js
+
+      # 检查并更新angular.json（确保配置文件被包含在构建中）
+      - name: Check and update angular.json
+        run: |
+          # 检查_redirects是否已在angular.json中
+          if ! grep -q "src/_redirects" angular.json; then
+            echo "Adding src/_redirects to angular.json"
+            # 使用jq工具添加_redirects配置（如果已安装）
+            if command -v jq &> /dev/null; then
+              jq '.projects["factoriolab"].architect.build.options.assets += ["src/_redirects"]' angular.json > angular.json.tmp
+              mv angular.json.tmp angular.json
+            fi
+          fi
+          
+          # 检查_headers是否已在angular.json中
+          if ! grep -q "src/_headers" angular.json; then
+            echo "Adding src/_headers to angular.json"
+            # 使用jq工具添加_headers配置（如果已安装）
+            if command -v jq &> /dev/null; then
+              jq '.projects["factoriolab"].architect.build.options.assets += ["src/_headers"]' angular.json > angular.json.tmp
+              mv angular.json.tmp angular.json
+            fi
+          fi
+
+      # 提交配置文件更改
+      - name: Commit configuration files
+        run: |
+          BRANCH=${{ github.event.inputs.branch || 'main' }}
+          git add src/_redirects src/_headers cloudflare.config.js angular.json
+          git commit -m "Update Cloudflare Pages configuration files"
+          git push origin $BRANCH
