@@ -10,6 +10,7 @@ import {
   tap,
 } from 'rxjs';
 
+import { data } from '~/models/app-data';
 import { ModData } from '~/models/data/mod-data';
 import { ModHash } from '~/models/data/mod-hash';
 import { ModI18n } from '~/models/data/mod-i18n';
@@ -32,6 +33,7 @@ export class DataService {
   cacheI18n: Entities<Entities<Observable<ModI18n>>> = {};
 
   error$ = new BehaviorSubject<Optional<string>>(undefined);
+  private hashSet = new Set(data.modHash);
 
   config$ = this.http
     .get<{
